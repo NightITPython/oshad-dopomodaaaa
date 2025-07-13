@@ -1,0 +1,11 @@
+oshad-dopomodaaaa/
+├── public/
+│   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   └── script.js
+│   ├── img/
+│   │   └── oshad.png (предполагается, что вы добавите логотип)
+│   └── index.html
+├── README.md
+└── .gitignore
